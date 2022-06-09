@@ -6,6 +6,7 @@ import ru.javawebinar.topjava.model.UserMealWithExcess;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,12 +29,48 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with excess. Implement by cycles
-        return null;
+        List<UserMealWithExcess> userMealWithExcesses = new ArrayList<>();
+        List<Boolean> excesses = new ArrayList<>();
+        int caloriesOfEating = 0;
+
+        //отсортировать по дате
+
+        int date = meals.get(0).getDateTime().getDayOfMonth();
+        for (int i = 0; i < meals.size(); i++) {
+            if (meals.get(i).getDateTime().getDayOfMonth() == date) {
+                caloriesOfEating += meals.get(i).getCalories();
+            } else {
+                if (caloriesOfEating > caloriesPerDay) {
+                    excesses.add(false);
+                } else {
+                    excesses.add(true);
+                }
+                date = meals.get(i).getDateTime().getDayOfMonth();
+                caloriesOfEating = meals.get(i).getCalories();
+            }
+        }
+        if (caloriesOfEating > caloriesPerDay) {
+            excesses.add(false);
+        } else {
+            excesses.add(true);
+        }
+        date = meals.get(0).getDateTime().getDayOfMonth();
+        for (int i = 0; i < meals.size(); i++) {
+            if (TimeUtil.isBetweenHalfOpen(meals.get(i).getDateTime().toLocalTime(), startTime, endTime)) {
+                if (meals.get(i).getDateTime().getDayOfMonth() == date) {
+                    userMealWithExcesses.add(new UserMealWithExcess(meals.get(i).getDateTime(), meals.get(i).getDescription(), meals.get(i).getCalories(), excesses.get(0)));
+                } else {
+                    excesses.remove(0);
+                    userMealWithExcesses.add(new UserMealWithExcess(meals.get(i).getDateTime(), meals.get(i).getDescription(), meals.get(i).getCalories(), excesses.get(0)));
+                    date = meals.get(i).getDateTime().getDayOfMonth();
+                }
+            }
+        }
+        return userMealWithExcesses;
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO Implement by streams
+
         return null;
     }
 }
