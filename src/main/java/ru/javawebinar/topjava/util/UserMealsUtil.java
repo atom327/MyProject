@@ -26,7 +26,7 @@ public class UserMealsUtil {
         List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
         mealsTo.forEach(System.out::println);
 
-//        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
+        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
@@ -69,7 +69,41 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-
-        return null;
+        List<UserMealWithExcess> userMealWithExcesses = new ArrayList<>();
+        List<UserMeal> userMeals = meals.stream().sorted((o1, o2) -> o1.getDateTime().compareTo(o2.getDateTime())).collect(Collectors.toList());
+        List<Boolean> excesses = new ArrayList<>();
+        int caloriesOfEating = 0;
+        int date = userMeals.get(0).getDateTime().getDayOfMonth();
+        for (int i = 0; i < userMeals.size(); i++) {
+            if (userMeals.get(i).getDateTime().getDayOfMonth() == date) {
+                caloriesOfEating += userMeals.get(i).getCalories();
+            } else {
+                if (caloriesOfEating > caloriesPerDay) {
+                    excesses.add(false);
+                } else {
+                    excesses.add(true);
+                }
+                date = userMeals.get(i).getDateTime().getDayOfMonth();
+                caloriesOfEating = userMeals.get(i).getCalories();
+            }
+        }
+        if (caloriesOfEating > caloriesPerDay) {
+            excesses.add(false);
+        } else {
+            excesses.add(true);
+        }
+        date = userMeals.get(0).getDateTime().getDayOfMonth();
+        for (int i = 0; i < userMeals.size(); i++) {
+            if (TimeUtil.isBetweenHalfOpen(userMeals.get(i).getDateTime().toLocalTime(), startTime, endTime)) {
+                if (userMeals.get(i).getDateTime().getDayOfMonth() == date) {
+                    userMealWithExcesses.add(new UserMealWithExcess(userMeals.get(i).getDateTime(), userMeals.get(i).getDescription(), userMeals.get(i).getCalories(), excesses.get(0)));
+                } else {
+                    excesses.remove(0);
+                    userMealWithExcesses.add(new UserMealWithExcess(userMeals.get(i).getDateTime(), userMeals.get(i).getDescription(), userMeals.get(i).getCalories(), excesses.get(0)));
+                    date = userMeals.get(i).getDateTime().getDayOfMonth();
+                }
+            }
+        }
+        return userMealWithExcesses;
     }
 }
