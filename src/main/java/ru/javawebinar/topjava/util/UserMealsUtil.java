@@ -9,6 +9,7 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -30,23 +31,21 @@ public class UserMealsUtil {
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         List<UserMealWithExcess> userMealWithExcesses = new ArrayList<>();
+        List<UserMeal> userMeals = meals.stream().sorted((o1, o2) -> o1.getDateTime().compareTo(o2.getDateTime())).collect(Collectors.toList());
         List<Boolean> excesses = new ArrayList<>();
         int caloriesOfEating = 0;
-
-        //отсортировать по дате
-
-        int date = meals.get(0).getDateTime().getDayOfMonth();
-        for (int i = 0; i < meals.size(); i++) {
-            if (meals.get(i).getDateTime().getDayOfMonth() == date) {
-                caloriesOfEating += meals.get(i).getCalories();
+        int date = userMeals.get(0).getDateTime().getDayOfMonth();
+        for (int i = 0; i < userMeals.size(); i++) {
+            if (userMeals.get(i).getDateTime().getDayOfMonth() == date) {
+                caloriesOfEating += userMeals.get(i).getCalories();
             } else {
                 if (caloriesOfEating > caloriesPerDay) {
                     excesses.add(false);
                 } else {
                     excesses.add(true);
                 }
-                date = meals.get(i).getDateTime().getDayOfMonth();
-                caloriesOfEating = meals.get(i).getCalories();
+                date = userMeals.get(i).getDateTime().getDayOfMonth();
+                caloriesOfEating = userMeals.get(i).getCalories();
             }
         }
         if (caloriesOfEating > caloriesPerDay) {
@@ -54,15 +53,15 @@ public class UserMealsUtil {
         } else {
             excesses.add(true);
         }
-        date = meals.get(0).getDateTime().getDayOfMonth();
-        for (int i = 0; i < meals.size(); i++) {
-            if (TimeUtil.isBetweenHalfOpen(meals.get(i).getDateTime().toLocalTime(), startTime, endTime)) {
-                if (meals.get(i).getDateTime().getDayOfMonth() == date) {
-                    userMealWithExcesses.add(new UserMealWithExcess(meals.get(i).getDateTime(), meals.get(i).getDescription(), meals.get(i).getCalories(), excesses.get(0)));
+        date = userMeals.get(0).getDateTime().getDayOfMonth();
+        for (int i = 0; i < userMeals.size(); i++) {
+            if (TimeUtil.isBetweenHalfOpen(userMeals.get(i).getDateTime().toLocalTime(), startTime, endTime)) {
+                if (userMeals.get(i).getDateTime().getDayOfMonth() == date) {
+                    userMealWithExcesses.add(new UserMealWithExcess(userMeals.get(i).getDateTime(), userMeals.get(i).getDescription(), userMeals.get(i).getCalories(), excesses.get(0)));
                 } else {
                     excesses.remove(0);
-                    userMealWithExcesses.add(new UserMealWithExcess(meals.get(i).getDateTime(), meals.get(i).getDescription(), meals.get(i).getCalories(), excesses.get(0)));
-                    date = meals.get(i).getDateTime().getDayOfMonth();
+                    userMealWithExcesses.add(new UserMealWithExcess(userMeals.get(i).getDateTime(), userMeals.get(i).getDescription(), userMeals.get(i).getCalories(), excesses.get(0)));
+                    date = userMeals.get(i).getDateTime().getDayOfMonth();
                 }
             }
         }
